@@ -136,3 +136,22 @@ def add_or_update_player(
     doc_ref.set(player_data, merge=True)
 
     return f"Successfully saved player '{name}' (ID: {clean_id}, Team: {team}, Rating: {rating}) to Firestore!"
+
+
+def delete_player(player_id: str) -> str:
+    """Deletes a player document from the Firestore database by player_id.
+
+    Args:
+        player_id: Unique slug identifier for the player (e.g. 'robert-lewandowski').
+
+    Returns:
+        Confirmation message of deletion from Firestore.
+    """
+    db = get_firestore_client()
+    clean_id = player_id.lower().strip().replace(" ", "-")
+    doc_ref = db.collection(COLLECTION_NAME).document(clean_id)
+    if not doc_ref.get().exists:
+        return f"Player '{clean_id}' does not exist in Firestore."
+    doc_ref.delete()
+    return f"Successfully deleted player '{clean_id}' from Firestore database."
+

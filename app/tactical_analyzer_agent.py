@@ -7,9 +7,10 @@ from google.adk.agents import Agent
 from google.adk.models import Gemini
 from google.genai import types
 
-from app.firestore_tools import get_player_details, search_players
+from app.firestore_tools import delete_player, get_player_details, search_players
 
 MODEL = "gemini-2.5-flash"
+
 
 TACTICAL_ANALYZER_INSTRUCTION = (
     "You are a master Tactical Analyst, Match Forecaster & Squad Selector for FC Barcelona (FCB).\n\n"
@@ -90,5 +91,5 @@ fcb_tactical_analyzer_agent = Agent(
         retry_options=types.HttpRetryOptions(attempts=3),
     ),
     instruction=TACTICAL_ANALYZER_INSTRUCTION,
-    tools=[search_players, get_player_details],
+    tools=[search_players, get_player_details, delete_player],
 )

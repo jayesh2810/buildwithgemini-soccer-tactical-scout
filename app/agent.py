@@ -68,6 +68,7 @@ def get_current_time(query: str) -> str:
 
 from app.firestore_tools import (
     add_or_update_player,
+    delete_player,
     get_player_details,
     search_players,
 )
@@ -112,6 +113,7 @@ root_agent = Agent(
         search_players,
         get_player_details,
         add_or_update_player,
+        delete_player,
         search_web_for_squad_info,
     ],
     sub_agents=[
