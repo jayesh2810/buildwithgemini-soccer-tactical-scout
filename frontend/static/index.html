@@ -575,11 +575,14 @@ function sendQuick(txt) {
 function parseMarkdown(str) {
   if (!str) return "";
   let html = str;
+
+  // Extract and strip raw JSON blocks so they don't clutter the user bubble
+  html = html.replace(/```json[\s\S]*?```/g, '');
+
   html = html.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   html = html.replace(/^### (.*$)/gim, '3::$1');
   html = html.replace(/^#### (.*$)/gim, '4::$1');
   html = html.replace(/\*\*(.*?)\__/g, "<strong>$1</strong>").replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
-  html = html.replace(/```(json|markdown)?\n([\s\S]*?)\n```/g, '<pre><code>$2</code></pre>');
 
   const lines = html.split('\n');
   let inList = false;
