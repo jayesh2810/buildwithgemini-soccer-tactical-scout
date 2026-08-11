@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FC Barcelona Dynamic Tactical Command Center</title>
+<!-- Google Fonts & Material Icons -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0">
+
+<style>
+  :root {
+    --fcb-blue: #004D98;
+    --fcb-dark-blue: #001238;
+    --fcb-garnet: #A50044;
+    --fcb-gold: #EDBB00;
+    --ea-dark: #070a14;
+    --ea-card-bg: rgba(13, 20, 36, 0.88);
+    --ea-border: rgba(237, 187, 0, 0.3);
+    --pitch-green: #1a4d2e;
+    --text-light: #f8fafc;
+    --text-muted: #94a3b8;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: var(--ea-dark);
+    background-image: 
+      radial-gradient(circle at 50% 0%, rgba(165, 0, 68, 0.3) 0%, transparent 65%),
+      radial-gradient(circle at 100% 100%, rgba(0, 77, 152, 0.35) 0%, transparent 55%),
+      linear-gradient(180deg, rgba(7, 10, 20, 0.96) 0%, rgba(7, 10, 20, 0.99) 100%);
+    color: var(--text-light);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* --- HEADER --- */
+  header {
+    background: linear-gradient(135deg, #000c28 0%, #002d72 40%, #800034 85%, #a50044 100%);
+    border-bottom: 2px solid var(--fcb-gold);
+    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.6);
+    padding: 0.8rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 20;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  .crest {
+    width: 42px;
+    height: 42px;
+    background: linear-gradient(135deg, var(--fcb-gold) 0%, #ffea79 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    box-shadow: 0 0 16px rgba(237, 187, 0, 0.5);
+    border: 2px solid #fff;
+  }
+
+  .brand-title {
+    font-size: 1.3rem;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    background: linear-gradient(90deg, #ffffff 0%, var(--fcb-gold) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .brand-subtitle {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 500;
+  }
+
+  .status-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(237, 187, 0, 0.4);
+    padding: 0.4rem 0.9rem;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #4ade80;
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    background-color: #4ade80;
+    border-radius: 50%;
+    box-shadow: 0 0 10px #4ade80;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(74, 222, 128, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+  }
+
+  /* --- MAIN CONTENT SPLIT LAYOUT --- */
+  .app-container {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    max-width: 1400px;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  /* --- LEFT: CHAT PANEL --- */
+  .chat-panel {
+    flex: 1.2;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid rgba(237, 187, 0, 0.15);
+    overflow: hidden;
+  }
+
+  #log {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+  }
+
+  .msg {
+    display: flex;
+    flex-direction: column;
+    max-width: 90%;
+    animation: slideUp 0.3s ease-out;
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .msg.user { align-self: flex-end; }
+  .msg.agent { align-self: flex-start; }
+
+  .bubble {
+    padding: 1rem 1.2rem;
+    border-radius: 16px;
+    background: var(--ea-card-bg);
+    border: 1px solid var(--ea-border);
+    backdrop-filter: blur(16px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+    line-height: 1.6;
+    font-size: 0.95rem;
+  }
+
+  .msg.user .bubble {
+    background: linear-gradient(135deg, var(--fcb-blue) 0%, var(--fcb-garnet) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    font-weight: 500;
+    border-bottom-right-radius: 4px;
+  }
+
+  .msg.agent .bubble { border-bottom-left-radius: 4px; }
+
+  .bubble h3 {
+    margin-top: 0;
+    color: var(--fcb-gold);
+    font-size: 1.1rem;
+    border-bottom: 1px solid rgba(237, 187, 0, 0.2);
+    padding-bottom: 0.4rem;
+  }
+
+  .bubble h4 { color: #e2e8f0; font-size: 0.98rem; margin: 0.8rem 0 0.3rem 0; }
+  .bubble ul { margin: 0.3rem 0; padding-left: 1.2rem; }
+  .bubble li { margin-bottom: 0.25rem; }
+
+  /* Quick Pills */
+  .quick-pills {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.6rem 1rem;
+    overflow-x: auto;
+    white-space: nowrap;
+    scrollbar-width: none;
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+  .quick-pills::-webkit-scrollbar { display: none; }
+
+  .pill {
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid rgba(237, 187, 0, 0.3);
+    color: #e2e8f0;
+    padding: 0.45rem 0.85rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(8px);
+  }
+
+  .pill:hover {
+    background: linear-gradient(135deg, var(--fcb-blue), var(--fcb-garnet));
+    border-color: var(--fcb-gold);
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(237, 187, 0, 0.3);
+  }
+
+  /* Form */
+  form {
+    display: flex;
+    gap: 0.8rem;
+    padding: 0.9rem 1rem;
+    background: rgba(7, 10, 20, 0.95);
+    border-top: 1px solid rgba(237, 187, 0, 0.2);
+  }
+
+  input {
+    flex: 1;
+    padding: 0.8rem 1.1rem;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.85);
+    color: #ffffff;
+    font-size: 0.92rem;
+    font-family: inherit;
+    outline: none;
+    transition: all 0.2s ease;
+  }
+
+  input:focus {
+    border-color: var(--fcb-gold);
+    box-shadow: 0 0 0 3px rgba(237, 187, 0, 0.25);
+  }
+
+  button {
+    padding: 0.8rem 1.4rem;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--fcb-garnet) 0%, var(--fcb-blue) 100%);
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 0.92rem;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    border: 1px solid rgba(237, 187, 0, 0.4);
+    box-shadow: 0 4px 14px rgba(165, 0, 68, 0.4);
+  }
+
+  button:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(237, 187, 0, 0.4); }
+
+  /* --- RIGHT: DYNAMIC TACTICAL HUB --- */
+  .visualizer-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 1.2rem;
+    gap: 1rem;
+    overflow-y: auto;
+    background: rgba(0, 0, 0, 0.2);
+  }
+
+  /* HUD Match Odds Box */
+  .hud-box {
+    background: var(--ea-card-bg);
+    border: 1px solid var(--ea-border);
+    border-radius: 16px;
+    padding: 1rem;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(12px);
+  }
+
+  .hud-title {
+    font-size: 0.85rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: var(--fcb-gold);
+    letter-spacing: 1px;
+    margin-bottom: 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .odds-bar-container {
+    display: flex;
+    height: 22px;
+    border-radius: 11px;
+    overflow: hidden;
+    background: #0f172a;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 0.8rem;
+  }
+
+  .bar-fcb { background: linear-gradient(90deg, #004D98, #A50044); transition: width 1s ease; }
+  .bar-draw { background: #EDBB00; transition: width 1s ease; }
+  .bar-opp { background: #ef4444; transition: width 1s ease; }
+
+  .odds-legend {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+
+  /* Dynamic Soccer Pitch Canvas */
+  .pitch-card {
+    background: linear-gradient(180deg, #0f3822 0%, #0a2615 100%);
+    border: 2px solid var(--fcb-gold);
+    border-radius: 16px;
+    position: relative;
+    height: 380px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7);
+    overflow: hidden;
+  }
+
+  .pitch-lines {
+    position: absolute;
+    inset: 12px;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-radius: 8px;
+    pointer-events: none;
+  }
+
+  .halfway-line {
+    position: absolute;
+    top: 50%;
+    left: 12px;
+    right: 12px;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.4);
+  }
+
+  .center-circle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 90px;
+    height: 90px;
+    transform: translate(-50%, -50%);
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-radius: 50%;
+  }
+
+  /* Player Tokens on Pitch */
+  .player-node {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    cursor: pointer;
+  }
+
+  .player-card-badge {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, var(--fcb-blue), var(--fcb-garnet));
+    border: 2px solid var(--fcb-gold);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 0.75rem;
+    color: #fff;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
+  }
+
+  .player-node:hover .player-card-badge {
+    transform: scale(1.2);
+    border-color: #fff;
+    box-shadow: 0 0 14px var(--fcb-gold);
+  }
+
+  .player-name-tag {
+    background: rgba(0, 0, 0, 0.85);
+    border: 1px solid var(--fcb-gold);
+    color: #fff;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 4px;
+    margin-top: 2px;
+    white-space: nowrap;
+  }
+
+  /* Responsive Mobile View */
+  @media (max-width: 900px) {
+    .app-container { flex-direction: column; }
+    .chat-panel { flex: 1; border-right: none; }
+    .visualizer-panel { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="crest">⚽</div>
+    <div>
+      <div class="brand-title">FC Barcelona Dynamic Command Center</div>
+      <div class="brand-subtitle">Live Pitch Visualizer, Win Odds & xG Forecaster</div>
+    </div>
+  </div>
+  <div class="status-badge">
+    <div class="status-dot"></div>
+    Engine Online
+  </div>
+</header>
+
+<div class="app-container">
+  <!-- LEFT: CHAT INTERFACE -->
+  <div class="chat-panel">
+    <div id="log">
+      <div class="msg agent">
+        <div class="bubble">
+          <h3>⚽ Welcome to FC Barcelona Tactical Command Center</h3>
+          Ask about upcoming matches, opposition scouting reports, or tactical setups. The dynamic pitch on the right will update live with your starting XI and match forecast!
+        </div>
+      </div>
+    </div>
+
+    <div class="quick-pills">
+      <div class="pill" onclick="sendQuick('Analyze FC Barcelona upcoming match against Real Madrid. Get their expected lineup, win odds, and xG.')">
+        ⚽ FCB vs Real Madrid
+      </div>
+      <div class="pill" onclick="sendQuick('Analyze FC Barcelona match against Bayern Munich with win probabilities and xG forecast.')">
+        🎲 FCB vs Bayern Munich
+      </div>
+      <div class="pill" onclick="sendQuick('Show all FC Barcelona squad players in our Firestore database.')">
+        📊 View Squad DB
+      </div>
+      <div class="pill" onclick="sendQuick('What is the latest injury report and expected lineup for Atletico Madrid?')">
+        🔴 Atletico Madrid Scout
+      </div>
+    </div>
+
+    <form id="form">
+      <input id="input" placeholder="Ask about tactics, lineups, or match forecast..." autocomplete="off" autofocus>
+      <button type="submit">
+        <span class="material-symbols-outlined">send</span> Send
+      </button>
+    </form>
+  </div>
+
+  <!-- RIGHT: DYNAMIC VISUALIZER & PITCH -->
+  <div class="visualizer-panel">
+    <!-- HUD MATCH FORECAST -->
+    <div class="hud-box">
+      <div class="hud-title">
+        <span>📊 Match Probability & xG HUD</span>
+        <span id="predicted-score" style="color:#fff; background:var(--fcb-garnet); padding:2px 8px; border-radius:4px;">FCB 2 - 1 OPP</span>
+      </div>
+      <div class="odds-bar-container">
+        <div id="bar-fcb" class="bar-fcb" style="width: 60%;" title="FCB Win"></div>
+        <div id="bar-draw" class="bar-draw" style="width: 22%;" title="Draw"></div>
+        <div id="bar-opp" class="bar-opp" style="width: 18%;" title="Opposition Win"></div>
+      </div>
+      <div class="odds-legend">
+        <span style="color:#38bdf8;">🔵 FCB Win: <strong id="val-fcb">60%</strong></span>
+        <span style="color:#EDBB00;">🟡 Draw: <strong id="val-draw">22%</strong></span>
+        <span style="color:#ef4444;">🔴 Opp Win: <strong id="val-opp">18%</strong></span>
+      </div>
+      <div style="margin-top: 0.8rem; font-size: 0.82rem; color: #cbd5e1; display:flex; justify-content:space-between; border-top:1px solid rgba(255,255,255,0.1); padding-top:0.5rem;">
+        <span><strong>Expected Goals (xG):</strong></span>
+        <span>FCB <strong id="xg-fcb" style="color:var(--fcb-gold);">2.15</strong> — <strong id="xg-opp" style="color:#ef4444;">1.10</strong> OPP</span>
+      </div>
+    </div>
+
+    <!-- SOCCER PITCH TACTICAL VISUALIZER -->
+    <div class="pitch-card" id="pitch-container">
+      <div class="pitch-lines"></div>
+      <div class="halfway-line"></div>
+      <div class="center-circle"></div>
+
+      <!-- Default 4-3-3 Dynamic FC Barcelona Positions -->
+      <div id="pitch-nodes">
+        <!-- Will be populated dynamically by JS -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const log = document.getElementById("log");
+const form = document.getElementById("form");
+const input = document.getElementById("input");
+const pitchNodes = document.getElementById("pitch-nodes");
+
+const default433 = [
+  { pos: "GK", name: "Ter Stegen", top: "90%", left: "50%", num: "1" },
+  { pos: "RB", name: "Koundé", top: "72%", left: "85%", num: "23" },
+  { pos: "CB", name: "Araujo", top: "75%", left: "62%", num: "4" },
+  { pos: "CB", name: "Cubarsí", top: "75%", left: "38%", num: "2" },
+  { pos: "LB", name: "Balde", top: "72%", left: "15%", num: "3" },
+  { pos: "CDM", name: "De Jong", top: "54%", left: "50%", num: "21" },
+  { pos: "CM", name: "Pedri", top: "42%", left: "68%", num: "8" },
+  { pos: "CM", name: "Gavi", top: "42%", left: "32%", num: "6" },
+  { pos: "RW", name: "Yamal", top: "20%", left: "82%", num: "19" },
+  { pos: "ST", name: "Lewandowski", top: "14%", left: "50%", num: "9" },
+  { pos: "LW", name: "Raphinha", top: "20%", left: "18%", num: "11" }
+];
+
+function renderPitchNodes(players) {
+  pitchNodes.innerHTML = "";
+  players.forEach(p => {
+    const node = document.createElement("div");
+    node.className = "player-node";
+    node.style.top = p.top;
+    node.style.left = p.left;
+    node.innerHTML = `
+      <div class="player-card-badge">${p.num || "FCB"}</div>
+      <div class="player-name-tag">${p.name}</div>
+    `;
+    pitchNodes.appendChild(node);
+  });
+}
+
+renderPitchNodes(default433);
+
+function updateHUD(winPct, drawPct, oppPct, fcbXg, oppXg, score) {
+  document.getElementById("bar-fcb").style.width = winPct + "%";
+  document.getElementById("bar-draw").style.width = drawPct + "%";
+  document.getElementById("bar-opp").style.width = oppPct + "%";
+
+  document.getElementById("val-fcb").textContent = winPct + "%";
+  document.getElementById("val-draw").textContent = drawPct + "%";
+  document.getElementById("val-opp").textContent = oppPct + "%";
+
+  document.getElementById("xg-fcb").textContent = fcbXg;
+  document.getElementById("xg-opp").textContent = oppXg;
+  document.getElementById("predicted-score").textContent = "Score: " + score;
+}
+
+function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+
+function bubble(who) {
+  const m = el("div", "msg " + who);
+  const b = el("div", "bubble");
+  m.appendChild(b); log.appendChild(m); log.scrollTop = log.scrollHeight;
+  return b;
+}
+
+function sendQuick(txt) {
+  input.value = txt;
+  form.dispatchEvent(new Event('submit'));
+}
+
+/* Parse basic Markdown formatting for clean rendering */
+function parseMarkdown(str) {
+  if (!str) return "";
+  let html = str;
+  html = html.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  html = html.replace(/^### (.*$)/gim, '3::$1');
+  html = html.replace(/^#### (.*$)/gim, '4::$1');
+  html = html.replace(/\*\*(.*?)\__/g, "<strong>$1</strong>").replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+  html = html.replace(/```(json|markdown)?\n([\s\S]*?)\n```/g, '<pre><code>$2</code></pre>');
+
+  const lines = html.split('\n');
+  let inList = false;
+  let result = [];
+
+  for (let line of lines) {
+    line = line.trim();
+    if (line.startsWith('3::')) {
+      if (inList) { result.push('</ul>'); inList = false; }
+      result.push(`<h3>${line.replace('3::', '')}</h3>`);
+    } else if (line.startsWith('4::')) {
+      if (inList) { result.push('</ul>'); inList = false; }
+      result.push(`<h4>${line.replace('4::', '')}</h4>`);
+    } else if (line.startsWith('- ') || line.startsWith('• ')) {
+      if (!inList) { result.push('<ul>'); inList = true; }
+      result.push(`<li>${line.substring(2)}</li>`);
+    } else if (line.length > 0) {
+      if (inList) { result.push('</ul>'); inList = false; }
+      result.push(`<p style="margin: 0.3rem 0;">${line}</p>`);
+    }
+  }
+  if (inList) result.push('</ul>');
+  return result.join('');
+}
+
+function renderReply(b, parts) {
+  b.textContent = "";
+  const texts = parts.filter(p => p && (p.kind === "text" || (!p.kind && p.text))).map(p => p.text || "");
+  const textStr = texts.join("\n").trim();
+
+  if (textStr) {
+    const formatted = el("div");
+    formatted.innerHTML = parseMarkdown(textStr);
+    b.appendChild(formatted);
+
+    // Check if JSON match_forecast exists in reply to dynamically update HUD
+    try {
+      const match = textStr.match(/```json\n([\s\S]*?)\n```/);
+      if (match && match[1]) {
+        const data = JSON.parse(match[1]);
+        if (data.match_forecast) {
+          const mf = data.match_forecast;
+          updateHUD(
+            mf.fcb_win_probability_pct || 60,
+            mf.draw_probability_pct || 22,
+            mf.opposition_win_probability_pct || 18,
+            mf.expected_goals?.fcb_xg || "2.1",
+            mf.expected_goals?.opposition_xg || "1.1",
+            mf.predicted_scoreline || "2 - 1"
+          );
+        }
+      }
+    } catch(e) { console.log("JSON HUD parse skip:", e); }
+  }
+
+  if (!b.childNodes.length) b.textContent = "(no response)";
+  log.scrollTop = log.scrollHeight;
+}
+
+form.addEventListener("submit", async (ev) => {
+  ev.preventDefault();
+  const text = input.value.trim();
+  if (!text) return;
+  bubble("user").textContent = text;
+  input.value = "";
+  const b = bubble("agent"); b.textContent = "…";
+  try {
+    const res = await fetch("/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: text }) });
+    const raw = await res.text();
+    let data;
+    try { data = JSON.parse(raw); }
+    catch { throw new Error(`Server returned non-JSON (HTTP ${res.status}). ${raw.slice(0, 300)}`); }
+    renderReply(b, data.parts || []);
+  } catch (e) {
+    b.textContent = "Error: " + e.message;
+  }
+});
+</script>
+</body>
+</html>
