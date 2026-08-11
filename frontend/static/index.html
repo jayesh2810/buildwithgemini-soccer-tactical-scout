@@ -515,14 +515,14 @@ const pitchNodes = document.getElementById("pitch-nodes");
 const default433 = [
   { pos: "GK", name: "Ter Stegen", top: "90%", left: "50%", num: "1" },
   { pos: "RB", name: "Koundé", top: "72%", left: "85%", num: "23" },
-  { pos: "CB", name: "Araujo", top: "75%", left: "62%", num: "4" },
+  { pos: "CB", name: "Íñigo Martínez", top: "75%", left: "62%", num: "5" },
   { pos: "CB", name: "Cubarsí", top: "75%", left: "38%", num: "2" },
   { pos: "LB", name: "Balde", top: "72%", left: "15%", num: "3" },
   { pos: "CDM", name: "De Jong", top: "54%", left: "50%", num: "21" },
   { pos: "CM", name: "Pedri", top: "42%", left: "68%", num: "8" },
   { pos: "CM", name: "Gavi", top: "42%", left: "32%", num: "6" },
   { pos: "RW", name: "Yamal", top: "20%", left: "82%", num: "19" },
-  { pos: "ST", name: "Lewandowski", top: "14%", left: "50%", num: "9" },
+  { pos: "ST", name: "Ferran", top: "14%", left: "50%", num: "7" },
   { pos: "LW", name: "Raphinha", top: "20%", left: "18%", num: "11" }
 ];
 
@@ -633,6 +633,23 @@ function renderReply(b, parts) {
             mf.expected_goals?.opposition_xg || "1.1",
             mf.predicted_scoreline || "2 - 1"
           );
+        }
+        if (data.fcb_starting_xi) {
+          const xi = data.fcb_starting_xi;
+          const dynamicNodes = [
+            { pos: "GK", name: xi.gk || "Ter Stegen", top: "90%", left: "50%", num: "1" },
+            { pos: "RB", name: xi.defenders?.[0] || "Koundé", top: "72%", left: "85%", num: "23" },
+            { pos: "CB", name: xi.defenders?.[1] || "Íñigo Martínez", top: "75%", left: "62%", num: "5" },
+            { pos: "CB", name: xi.defenders?.[2] || "Cubarsí", top: "75%", left: "38%", num: "2" },
+            { pos: "LB", name: xi.defenders?.[3] || "Balde", top: "72%", left: "15%", num: "3" },
+            { pos: "CDM", name: xi.midfielders?.[0] || "De Jong", top: "54%", left: "50%", num: "21" },
+            { pos: "CM", name: xi.midfielders?.[1] || "Pedri", top: "42%", left: "68%", num: "8" },
+            { pos: "CM", name: xi.midfielders?.[2] || "Gavi", top: "42%", left: "32%", num: "6" },
+            { pos: "RW", name: xi.forwards?.[0] || "Yamal", top: "20%", left: "82%", num: "19" },
+            { pos: "ST", name: xi.forwards?.[1] || "Ferran", top: "14%", left: "50%", num: "7" },
+            { pos: "LW", name: xi.forwards?.[2] || "Raphinha", top: "20%", left: "18%", num: "11" }
+          ];
+          renderPitchNodes(dynamicNodes);
         }
       }
     } catch(e) { console.log("JSON HUD parse skip:", e); }
